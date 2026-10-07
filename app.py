@@ -1,253 +1,392 @@
 import streamlit as st
 
+# -----------------------------
+# PAGE SETUP
+# -----------------------------
+
 st.set_page_config(
-    page_title="Escape Room",
-    page_icon="🔐",
-    layout="centered"
+    page_title="Mind Reader 2.0",
+    page_icon="🧠"
 )
 
-# -------------------------
-# GAME STATE
-# -------------------------
+# -----------------------------
+# SESSION STATE
+# -----------------------------
 
-if "room" not in st.session_state:
-    st.session_state.room = 1
+if "mode" not in st.session_state:
+    st.session_state.mode = "menu"
 
-if "attempts" not in st.session_state:
-    st.session_state.attempts = 0
+if "prediction_done" not in st.session_state:
+    st.session_state.prediction_done = False
+
+if "number_result" not in st.session_state:
+    st.session_state.number_result = None
+
+if "math_done" not in st.session_state:
+    st.session_state.math_done = False
 
 
-# -------------------------
+# -----------------------------
 # TITLE
-# -------------------------
+# -----------------------------
 
-st.title("🔐 ESCAPE ROOM")
-st.subheader("THE LOCKED CLASSROOM")
-
-st.write(
-    "After school, you find yourself trapped inside a locked classroom."
-)
-
-st.write(
-    "A clock, a mysterious note, a locked box, and a painting "
-    "may hold the key."
-)
-
-st.divider()
+st.title("🧠 Mind Reader 2.0")
+st.write("### Can I really read your mind?")
+st.write("---")
 
 
-# -------------------------
-# PROGRESS
-# -------------------------
+# -----------------------------
+# MAIN MENU
+# -----------------------------
 
-st.progress(
-    min(st.session_state.room / 3, 1.0),
-    text=f"Room {min(st.session_state.room, 3)} of 3"
-)
+if st.session_state.mode == "menu":
 
+    st.subheader("🎮 Choose a Mind-Reading Trick")
 
-# -------------------------
-# ROOM 1
-# -------------------------
+    if st.button("🔮 Guaranteed Prediction", use_container_width=True):
+        st.session_state.mode = "prediction"
+        st.rerun()
 
-if st.session_state.room == 1:
+    if st.button("🔢 Number Mind Reader", use_container_width=True):
+        st.session_state.mode = "number"
+        st.rerun()
 
-    st.header("🕰️ ROOM 1 — THE CLOCK")
+    if st.button("🎩 Mathematical Magic", use_container_width=True):
+        st.session_state.mode = "magic"
+        st.rerun()
 
-    st.write(
-        "The clock is stopped at **7:25**."
-    )
+    if st.button("🕵️ Secret Challenge", use_container_width=True):
+        st.session_state.mode = "challenge"
+        st.rerun()
 
-    st.write(
-        "Enter the time as four digits **(HHMM)**."
-    )
-
-    guess = st.text_input(
-        "Clock code:",
-        max_chars=4
-    )
-
-    if st.button("🔓 Unlock Clock"):
-
-        st.session_state.attempts += 1
-
-        if guess.strip() == "0725":
-
-            st.success("✅ Correct! The clock unlocks.")
-
-            if st.button("➡️ Enter Room 2"):
-                st.session_state.room = 2
-                st.rerun()
-
-        else:
-
-            st.error("❌ Not quite.")
-
-            st.info(
-                "💡 Hint: Use a leading zero for the hour."
-            )
+    if st.button("🧠 Reveal the Secret", use_container_width=True):
+        st.session_state.mode = "secret"
+        st.rerun()
 
 
-# -------------------------
-# ROOM 2
-# -------------------------
+# ==================================================
+# 1. GUARANTEED PREDICTION
+# ==================================================
 
-elif st.session_state.room == 2:
+elif st.session_state.mode == "prediction":
 
-    st.header("📜 ROOM 2 — THE MYSTERIOUS NOTE")
-
-    st.write("You discover a strange encoded message:")
-
-    st.code(
-        "WKH ERA FRGH LV WKH FORFN'V KRXU SOXV WKH\n"
-        "QXPEHU RI OHWWHUV LQ 'FODVVURRP'."
-    )
+    st.header("🔮 Guaranteed Prediction")
 
     st.write(
-        "The message was encoded by shifting each letter "
-        "**forward three places**."
+        "Think of any number in your mind. "
+        "Don't tell me what it is!"
+    )
+
+    st.write("Now follow these steps:")
+
+    st.write("1️⃣ Multiply your number by **2**")
+    st.write("2️⃣ Add **10**")
+    st.write("3️⃣ Divide the result by **2**")
+    st.write("4️⃣ Subtract your original number")
+
+    st.write("---")
+
+    if st.button("🧠 Read My Mind", use_container_width=True):
+
+        st.session_state.prediction_done = True
+
+    if st.session_state.prediction_done:
+
+        st.success("🔮 I can see the answer!")
+
+        st.subheader("✨ Your final number is...")
+
+        st.title("5")
+
+        st.write(
+            "😱 No matter what number you started with, "
+            "the answer is always 5!"
+        )
+
+    if st.button("⬅️ Back to Menu"):
+        st.session_state.mode = "menu"
+        st.session_state.prediction_done = False
+        st.rerun()
+
+
+# ==================================================
+# 2. NUMBER MIND READER
+# ==================================================
+
+elif st.session_state.mode == "number":
+
+    st.header("🔢 Number Mind Reader")
+
+    st.write(
+        "Think of a whole number between **1 and 31**."
     )
 
     st.write(
-        "Decode the message and discover the two-digit "
-        "combination for the box."
+        "I will show you five cards. "
+        "Tell me whether your number appears on each card."
     )
 
-    with st.expander("🧩 Need a hint?"):
+    cards = [
+        [1, 3, 5, 7, 9, 11, 13, 15,
+         17, 19, 21, 23, 25, 27, 29, 31],
 
-        st.write("The clock hour is **7**.")
-        st.write("CLASSROOM has **9 letters**.")
-        st.write("Add them together.")
+        [2, 3, 6, 7, 10, 11, 14, 15,
+         18, 19, 22, 23, 26, 27, 30, 31],
 
-    guess = st.text_input(
-        "Box combination:",
-        max_chars=2
-    )
+        [4, 5, 6, 7, 12, 13, 14, 15,
+         20, 21, 22, 23, 28, 29, 30, 31],
 
-    if st.button("🔓 Unlock Box"):
+        [8, 9, 10, 11, 12, 13, 14, 15,
+         24, 25, 26, 27, 28, 29, 30, 31],
 
-        st.session_state.attempts += 1
+        [16, 17, 18, 19, 20, 21, 22, 23,
+         24, 25, 26, 27, 28, 29, 30, 31]
+    ]
 
-        if guess.strip() == "16":
+    values = [1, 2, 4, 8, 16]
 
-            st.success("✅ Correct! The box clicks open!")
+    answers = []
 
-            st.write("📦 Inside the box you find a note:")
+    for i in range(5):
 
-            st.warning(
-                "The painting holds the door code."
-            )
+        st.write("---")
 
-            if st.button("➡️ Enter Final Room"):
-                st.session_state.room = 3
-                st.rerun()
+        st.subheader(f"🃏 Card {i + 1}")
 
-        else:
+        st.write(
+            " ".join(str(number) for number in cards[i])
+        )
 
-            st.error("❌ Not quite.")
+        answer = st.radio(
+            f"Is your number on Card {i + 1}?",
+            ["Yes", "No"],
+            key=f"card_{i}"
+        )
 
-            st.info(
-                "💡 Hint: 7 + 9 = ?"
-            )
+        answers.append(answer)
 
+    if st.button("🧠 Reveal My Number", use_container_width=True):
 
-# -------------------------
-# FINAL ROOM
-# -------------------------
+        result = 0
 
-elif st.session_state.room == 3:
+        for i in range(5):
 
-    st.header("🚪 FINAL ROOM — THE DOOR")
+            if answers[i] == "Yes":
+                result += values[i]
 
-    st.write(
-        "The painting shows:"
-    )
-
-    st.write("""
-    🧱 **4 walls**
-
-    🪑 **8 desks**
-
-    🪟 **2 windows**
-
-    🪑 **6 chairs**
-    """)
-
-    st.write(
-        "Put those numbers together in the same order "
-        "to create the four-digit door code."
-    )
-
-    guess = st.text_input(
-        "🔐 Door code:",
-        max_chars=4
-    )
-
-    if st.button("🚪 Escape!"):
-
-        st.session_state.attempts += 1
-
-        if guess.strip() == "4826":
-
-            st.balloons()
-
-            st.success(
-                "🎉 ESCAPE SUCCESSFUL!"
-            )
-
-            st.write(
-                "You unlocked the classroom door!"
-            )
-
-            st.write(
-                f"🏆 Total attempts: {st.session_state.attempts}"
-            )
-
-            st.success(
-                "🕵️ Detective Rating: ⭐⭐⭐⭐⭐"
-            )
-
-            if st.button("🔄 Play Again"):
-
-                st.session_state.room = 1
-                st.session_state.attempts = 0
-                st.rerun()
-
-        else:
+        if result == 0:
 
             st.error(
-                "❌ The door remains locked."
+                "Please make sure you selected the correct "
+                "answers for your number."
             )
+
+        else:
+
+            st.session_state.number_result = result
+
+    if st.session_state.number_result is not None:
+
+        st.success("🔮 I have read your mind!")
+
+        st.subheader("You were thinking of...")
+
+        st.title(
+            str(st.session_state.number_result)
+        )
+
+    if st.button("⬅️ Back to Menu"):
+
+        st.session_state.mode = "menu"
+        st.session_state.number_result = None
+
+        st.rerun()
+
+
+# ==================================================
+# 3. MATHEMATICAL MAGIC
+# ==================================================
+
+elif st.session_state.mode == "magic":
+
+    st.header("🎩 Mathematical Magic")
+
+    st.write(
+        "Let's try another mysterious mathematical trick!"
+    )
+
+    st.write("Think of any number.")
+
+    st.write("1️⃣ Multiply it by **2**")
+    st.write("2️⃣ Add **8**")
+    st.write("3️⃣ Divide by **2**")
+    st.write("4️⃣ Subtract your original number")
+
+    st.write("---")
+
+    if st.button("✨ Perform Magic", use_container_width=True):
+
+        st.session_state.math_done = True
+
+    if st.session_state.math_done:
+
+        st.success("🎩 Magic complete!")
+
+        st.subheader("Your answer is...")
+
+        st.title("4")
+
+        st.write(
+            "The original number disappears from the equation!"
+        )
+
+        st.write("---")
+
+        st.subheader("🔢 Bonus Digit-Sum Trick")
+
+        st.write(
+            "Take any two-digit number and subtract "
+            "the sum of its digits from it."
+        )
+
+        st.write(
+            "The result will always be divisible by 9."
+        )
+
+        st.info(
+            "For example: 54 → 5 + 4 = 9 → "
+            "54 - 9 = 45"
+        )
+
+    if st.button("⬅️ Back to Menu"):
+
+        st.session_state.mode = "menu"
+        st.session_state.math_done = False
+
+        st.rerun()
+
+
+# ==================================================
+# 4. SECRET CHALLENGE
+# ==================================================
+
+elif st.session_state.mode == "challenge":
+
+    st.header("🕵️ Secret Challenge")
+
+    st.write(
+        "You've seen the first trick."
+    )
+
+    st.write(
+        "Now let's see if you can discover "
+        "how the mind reading actually works."
+    )
+
+    answer = st.radio(
+        "Why does the Guaranteed Prediction always work?",
+        [
+            "The computer randomly guesses the answer",
+            "The mathematics cancels out the original number",
+            "The computer can actually read minds",
+            "The answer changes every time"
+        ]
+    )
+
+    if st.button("🔍 Check Answer", use_container_width=True):
+
+        if answer == "The mathematics cancels out the original number":
+
+            st.success("🎉 Correct!")
+
+            st.write(
+                "You're beginning to discover the secret "
+                "behind the trick."
+            )
+
+        else:
+
+            st.error("❌ Not quite!")
 
             st.info(
-                "💡 Hint: Put 4, 8, 2 and 6 together."
+                "💡 Think about what happens when the "
+                "original number is subtracted."
             )
 
+    if st.button("⬅️ Back to Menu"):
 
-# -------------------------
-# SIDEBAR
-# -------------------------
+        st.session_state.mode = "menu"
+        st.rerun()
 
-with st.sidebar:
 
-    st.header("🕵️ Detective Panel")
+# ==================================================
+# 5. REVEAL THE SECRET
+# ==================================================
 
-    st.write(
-        "Solve each puzzle to escape!"
-    )
+elif st.session_state.mode == "secret":
 
-    st.metric(
-        "Current Room",
-        f"{min(st.session_state.room, 3)}/3"
-    )
-
-    st.metric(
-        "Attempts",
-        st.session_state.attempts
-    )
-
-    st.divider()
+    st.header("🧠 Reveal the Secret")
 
     st.write(
-        "🔐 Escape Room: The Locked Classroom"
+        "The first trick isn't actually supernatural."
     )
+
+    st.write("Suppose your original number is **X**.")
+
+    st.write("### Step 1")
+
+    st.code("X × 2 = 2X")
+
+    st.write("### Step 2")
+
+    st.code("2X + 10")
+
+    st.write("### Step 3")
+
+    st.code("(2X + 10) ÷ 2 = X + 5")
+
+    st.write("### Step 4")
+
+    st.code("(X + 5) - X = 5")
+
+    st.success(
+        "🎯 The X disappears, leaving 5!"
+    )
+
+    st.write("---")
+
+    st.subheader("🔢 Why the Number Mind Reader works")
+
+    st.write(
+        "The cards represent powers of 2:"
+    )
+
+    st.code("1 + 2 + 4 + 8 + 16")
+
+    st.write(
+        "Every number from 1 to 31 can be represented "
+        "as a combination of these values."
+    )
+
+    st.write(
+        "When you say YES to a card, the program adds "
+        "that card's value to reconstruct your number."
+    )
+
+    st.success(
+        "🧠 So the computer isn't actually reading your mind — "
+        "it's using mathematics!"
+    )
+
+    if st.button("⬅️ Back to Menu"):
+
+        st.session_state.mode = "menu"
+        st.rerun()
+
+
+# -----------------------------
+# FOOTER
+# -----------------------------
+
+st.write("---")
+st.caption("🧠 Mind Reader 2.0 • Built with Python + Streamlit")
